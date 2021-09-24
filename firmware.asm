@@ -20,8 +20,7 @@
 .equ LED_PORT = PORTA       ; LED Port
 .equ LED_PIN = PINA0        ; LED Pin
 
-.equ oVal = 70
-.equ iVal = 1000
+.equ iVal = 65000
 
 .org 0x00                   ; Start program at 0x00
 .cseg                       ; Code segment
@@ -29,9 +28,7 @@
 main:                       ; Start up program
   init_stack_p r16, RAMEND
   rcall init_ports          ; Initialize MCU ports
-  ldi r18, oVal
-  ldi r24, low(iVal)
-  ldi r25, high(iVal)
+  rcall delay_loop_reset
 
 loop:                       ; Program loop
   cbi LED_PORT, LED_PIN
@@ -48,7 +45,28 @@ init_ports:                 ; Init MCU ports
   out LED_PORT, r17
 ret
 
+delay_loop_reset:           ; Load value to registar pair again
+  ldi r24, low(iVal)
+  ldi r25, high(iVal)
+ret
+
 delay_loop:
   sbiw r24, 1
   brne delay_loop
+  nop
+  rcall delay_loop_reset
+  rcall delay_loop_2
+ret
+
+delay_loop_2:
+  sbiw r24, 1
+  brne delay_loop_2
+  rcall delay_loop_reset
+  rcall delay_loop_3
+ret
+
+delay_loop_3:
+  sbiw r24, 1
+  brne delay_loop_3
+  rcall delay_loop_reset
 ret
