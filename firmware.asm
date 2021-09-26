@@ -5,6 +5,7 @@
 ; Device: ATtiny24A
 ; Package: 14-pin-PDIP_SOIC
 ; Assembler: gavrasm v5.0
+; Fuses: lfuse: 0xC2, hfuse: 0xDF, efuse: 0xFF, lock:0xFF
 ;
 ; Written by Sergey Yarkov 23.09.2021
 
@@ -20,17 +21,12 @@
 .equ LED_PORT = PORTA       ; LED Port
 .equ LED_PIN = PINA0        ; LED Pin
 
-.equ oVal = 20             ; If set to 0, then this value is decremented to 255
-.equ iVal = 10000           ; Value of cycles in inner delay loop
-
 .org 0x00                   ; Start program at 0x00
 .cseg                       ; Code segment
 
 main:                       ; Start up program
   init_stack_p r16, RAMEND
   rcall init_ports          ; Initialize MCU ports
-  rcall _r_inner_delay_loop ; Initialize delay inner loop value
-  rcall _r_outer_delay_loop           ; Intialize delay outer loop value
 
 loop:                       ; Program loop
   rcall toggle_led          ; Toggle an LED
@@ -47,25 +43,19 @@ init_ports:                 ; Init MCU ports
   out LED_DIR, r16          ; Set LED direction to output
 ret
 
-delay_1s_outer_l:
-  rcall _r_inner_delay_loop
+delay_1s:                   ; For 8Mhz frequency 
+.equ outer_count = 71
+.equ inner_count = 28168
 
-delay_1s:
-  sbiw r24, 1               ; Decrement inner loop value
-  brne delay_1s             ; Jump to inner loop again
+ldi r18, outer_count        ; Load outer loop counter value
+  _reset:                   ; Load inner loop counter value
+    ldi r24, low(inner_count)
+    ldi r25, high(inner_count)
+  _loop:                    ; Delay loop ; e.g inner_count*(2+2)-1 = inner loop cycles
+    sbiw r24, 1             ; 2 cycles
+    brne _loop              ; 2 cycles or 1
 
-  rcall _r_inner_delay_loop ; Reset inner loop value
-
-  dec r18                   ; Decremnt outer loop value
-  brne delay_1s_outer_l     ; Jump to outer loop again
-  rcall _r_outer_delay_loop
-ret
-
-_r_inner_delay_loop:        ; Reset inner delay loop
-  ldi r24, low(iVal)
-  ldi r25, high(iVal)
-ret
-
-_r_outer_delay_loop:        ; Reset outer delay loop
-  ldi r18, oVal
+    dec r18                 ; 1 cycles
+    brne _reset             ; 2 cycles or 1
+    ldi r18, outer_count    
 ret
