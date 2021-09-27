@@ -5,7 +5,8 @@
 ; Device: ATtiny24A
 ; Package: 14-pin-PDIP_SOIC
 ; Assembler: gavrasm v5.0
-; Fuses: lfuse: 0xC2, hfuse: 0xDF, efuse: 0xFF, lock:0xFF
+; Clock frequency: 8MHz with CKDIV8
+; Fuses: lfuse: 0x42, hfuse: 0xDF, efuse: 0xFF, lock:0xFF
 ;
 ; Written by Sergey Yarkov 23.09.2021
 
@@ -43,9 +44,13 @@ init_ports:                 ; Init MCU ports
   out LED_DIR, r16          ; Set LED direction to output
 ret
 
-delay_1s:                   ; For 8Mhz frequency 
-.equ outer_count = 71
-.equ inner_count = 28168
+delay_1s:                   ; For 1MHz frequency 
+;
+; Calculate this values of inner and 
+; outer loops count to obtain the desired delay.
+
+.equ outer_count = 100
+.equ inner_count = 2499
 
 ldi r18, outer_count        ; Load outer loop counter value
   _reset:                   ; Load inner loop counter value
