@@ -46,8 +46,8 @@ ret
 
 delay_1s:                   ; For 1MHz frequency 
 ;
-; Calculate this values of inner and 
-; outer loops count to obtain the desired delay.
+; Calculate the values of count inner 
+; and outer loops to obtain the desired delay.
 
 .equ outer_count = 100
 .equ inner_count = 2499
